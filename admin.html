@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Community Transports</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f9fafb;
+        }
+
+        nav {
+            background: #2563eb;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: bold;
+            font-size: 1.25rem;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo-circle {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+        }
+
+        .logout-btn {
+            background: #dc2626;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .logout-btn:hover {
+            background: #b91c1c;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .btn-green {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-green:hover {
+            background: #059669;
+        }
+
+        .applications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .application-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .application-card.eligible {
+            border-color: #86efac;
+            background: #f0fdf4;
+        }
+
+        .application-card.ineligible {
+            border-color: #fde68a;
+            background: #fefce8;
+        }
+
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .app-info h3 {
+            font-size: 1.125rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .app-info p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-badge.eligible {
+            background: #bbf7d0;
+            color: #166534;
+        }
+
+        .status-badge.ineligible {
+            background: #fef08a;
+            color: #854d0e;
+        }
+
+        .districts {
+            margin-bottom: 1rem;
+        }
+
+        .districts p {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .district-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .district-tag {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+        }
+
+        .verifications {
+            margin-bottom: 1rem;
+        }
+
+        .verifications p {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .verification-checks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .verification-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .external-links {
+            margin-bottom: 1rem;
+        }
+
+        .external-links p {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .link-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .link-btn {
+            background: #2563eb;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            text-decoration: none;
+            font-size: 0.75rem;
+        }
+
+        .link-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .notes-section {
+            margin-top: 1rem;
+        }
+
+        .notes-section label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .notes-section textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-family: inherit;
+            font-size: 0.875rem;
+            resize: vertical;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .login-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .login-card h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .login-form input {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .login-btn {
+            background: #2563eb;
+            color: white;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .login-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .demo-text {
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .export-buttons {
+                flex-direction: column;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-circle">CT</div>
+                <span>Community Transports</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="application.html">Apply Now</a></li>
+                <li><a href="admin.html">Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div id="loginContainer" class="login-container">
+        <div class="login-card">
+            <h1>Admin Login</h1>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+                <p class="demo-text">Demo credentials: username: admin, password: admin</p>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboardContainer" class="container" style="display: none;">
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <!-- Filters Card -->
+        <div class="card">
+            <h2>Filters</h2>
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label>Eligibility</label>
+                    <select id="filterEligibility">
+                        <option value="all">All</option>
+                        <option value="eligible">Eligible</option>
+                        <option value="ineligible">Not Eligible</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>District</label>
+                    <select id="filterDistrict">
+                        <option value="all">All Districts</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date From</label>
+                    <input type="date" id="filterDateFrom">
+                </div>
+                <div class="form-group">
+                    <label>Date To</label>
+                    <input type="date" id="filterDateTo">
+                </div>
+            </div>
+            <div class="export-buttons">
+                <button class="btn btn-green" onclick="exportData('csv')">Export CSV</button>
+                <button class="btn btn-green" onclick="exportData('excel')">Export Excel</button>
+                <button class="btn btn-green" onclick="exportData('pdf')">Export PDF</button>
+            </div>
+        </div>
+
+        <!-- Applications List Card -->
+        <div class="card">
+            <h2>Applications (<span id="appCount">0</span>)</h2>
+            <div id="applicationsList" class="applications-list">
+                <!-- Applications will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const districts = [
+            'Aldine ISD', 'Alief ISD', 'Alvin ISD', 'Barbers Hill ISD', 'Channelview ISD',
+            'Clear Creek ISD', 'Conroe ISD', 'Crosby ISD', 'Cypress-Fairbanks ISD',
+            'Dayton ISD', 'Deer Park ISD', 'Dickinson ISD', 'Fort Bend ISD',
+            'Friendswood ISD', 'Galena Park ISD', 'Goose Creek CISD', 'Huffman ISD',
+            'Humble ISD', 'Katy ISD', 'Klein ISD', 'Lamar Consolidated ISD',
+            'New Caney ISD', 'Pasadena ISD', 'Pearland ISD', 'Sheldon ISD',
+            'Spring ISD', 'Spring Branch ISD', 'Tomball ISD'
+        ];
+
+        // Mock applications data
+        let applications = [
+            {
+                id: 1,
+                firstName: 'John',
+                lastName: 'Doe',
+                email: 'john.doe@example.com',
+                eligible: true,
+                districts: ['Katy ISD', 'Cypress-Fairbanks ISD'],
+                date: '2025-10-01',
+                verifications: { drug: false, background: false, english: false },
+                notes: ''
+            },
+            {
+                id: 2,
+                firstName: 'Jane',
+                lastName: 'Smith',
+                email: 'jane.smith@example.com',
+                eligible: false,
+                districts: ['Spring ISD'],
+                date: '2025-10-03',
+                verifications: { drug: false, background: false, english: false },
+                notes: 'Reapply when vehicle requirements met'
+            }
+        ];
+
+        // Check for stored application data
+        const lastApp = localStorage.getItem('lastApplication');
+        if (lastApp) {
+            const appData = JSON.parse(lastApp);
+            const isEligible = appData.age21Plus === 'yes' && 
+                             appData.validLicense === 'yes' && 
+                             appData.vehicleType === 'yes' && 
+                             appData.texasRegistration === 'yes';
+            
+            applications.push({
+                id: applications.length + 1,
+                firstName: appData.firstName,
+                lastName: appData.lastName,
+                email: appData.email,
+                eligible: isEligible,
+                districts: appData.districts || [],
+                date: new Date().toISOString().split('T')[0],
+                verifications: { drug: false, background: false, english: false },
+                notes: ''
+            });
+        }
+
+        // Populate district filter
+        const districtFilter = document.getElementById('filterDistrict');
+        districts.forEach(district => {
+            const option = document.createElement('option');
+            option.value = district;
+            option.textContent = district;
+            districtFilter.appendChild(option);
+        });
+
+        // Login handling
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'admin' && password === 'admin') {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('dashboardContainer').style.display = 'block';
+                renderApplications();
+            } else {
+                alert('Invalid credentials. Use username: admin, password: admin');
+            }
+        });
+
+        function logout() {
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('dashboardContainer').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function renderApplications() {
+            const filterEligibility = document.getElementById('filterEligibility').value;
+            const filterDistrict = document.getElementById('filterDistrict').value;
+            const filterDateFrom = document.getElementById('filterDateFrom').value;
+            const filterDateTo = document.getElementById('filterDateTo').value;
+
+            let filtered = applications.filter(app => {
+                if (filterEligibility !== 'all' && 
+                    (filterEligibility === 'eligible' ? !app.eligible : app.eligible)) {
+                    return false;
+                }
+                if (filterDistrict !== 'all' && !app.districts.includes(filterDistrict)) {
+                    return false;
+                }
+                if (filterDateFrom && app.date < filterDateFrom) {
+                    return false;
+                }
+                if (filterDateTo && app.date > filterDateTo) {
+                    return false;
+                }
+                return true;
+            });
+
+            const listContainer = document.getElementById('applicationsList');
+            document.getElementById('appCount').textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state">No applications found matching the current filters.</div>';
+                return;
+            }
+
+            listContainer.innerHTML = filtered.map(app => `
+                <div class="application-card ${app.eligible ? 'eligible' : 'ineligible'}">
+                    <div class="app-header">
+                        <div class="app-info">
+                            <h3>${app.firstName} ${app.lastName}</h3>
+                            <p>${app.email}</p>
+                            <p>Applied: ${app.date}</p>
+                        </div>
+                        <span class="status-badge ${app.eligible ? 'eligible' : 'ineligible'}">
+                            ${app.eligible ? 'Eligible' : 'Not Eligible'}
+                        </span>
+                    </div>
+
+                    <div class="districts">
+                        <p>Districts:</p>
+                        <div class="district-tags">
+                            ${app.districts.map(d => `<span class="district-tag">${d}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    ${app.eligible ? `
+                        <div class="verifications">
+                            <p>Verifications:</p>
+                            <div class="verification-checks">
+                                <label class="verification-label">
+                                    <input type="checkbox" ${app.verifications.drug ? 'checked' : ''} 
+                                           onchange="toggleVerification(${app.id}, 'drug', this.checked)">
+                                    <span>Drug Test</span>
+                                </label>
+                                <label class="verification-label">
+                                    <input type="checkbox" ${app.verifications.background ? 'checked' : ''} 
+                                           onchange="toggleVerification(${app.id}, 'background', this.checked)">
+                                    <span>Background Check</span>
+                                </label>
+                                <label class="verification-label">
+                                    <input type="checkbox" ${app.verifications.english ? 'checked' : ''} 
+                                           onchange="toggleVerification(${app.id}, 'english', this.checked)">
+                                    <span>English Validation</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="external-links">
+                            <p>External Links:</p>
+                            <div class="link-buttons">
+                                <a href="https://clearviewtesting.com" target="_blank" class="link-btn">Clearview Testing</a>
+                                <a href="https://identogo.com" target="_blank" class="link-btn">Identogo</a>
+                                <a href="https://contractorcompliance.com" target="_blank" class="link-btn">Contractor Compliance</a>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="notes-section">
+                        <label>Notes:</label>
+                        <textarea rows="2" placeholder="Add internal notes about this application..."
+                                  onchange="updateNotes(${app.id}, this.value)">${app.notes}</textarea>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleVerification(appId, type, checked) {
+            const app = applications.find(a => a.id === appId);
+            if (app) {
+                app.verifications[type] = checked;
+            }
+        }
+
+        function updateNotes(appId, notes) {
+            const app = applications.find(a => a.id === appId);
+            if (app) {
+                app.notes = notes;
+            }
+        }
+
+        function exportData(format) {
+            alert(`Exporting applications as ${format.toUpperCase()}...\n\nIn a production environment, this would download a ${format.toUpperCase()} file with all application data.`);
+        }
+
+        // Add filter event listeners
+        document.getElementById('filterEligibility').addEventListener('change', renderApplications);
+        document.getElementById('filterDistrict').addEventListener('change', renderApplications);
+        document.getElementById('filterDateFrom').addEventListener('change', renderApplications);
+        document.getElementById('filterDateTo').addEventListener('change', renderApplications);
+    </script>
+</body>
+</html>

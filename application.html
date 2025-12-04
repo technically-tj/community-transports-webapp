@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Application - Community Transports</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f9fafb;
+        }
+
+        nav {
+            background: #2563eb;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: bold;
+            font-size: 1.25rem;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo-circle {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .form-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .intro-text {
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 2rem;
+            margin-top: 0.5rem;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        input[type="radio"] {
+            cursor: pointer;
+        }
+
+        .districts-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background: #f9fafb;
+        }
+
+        .districts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+
+        .checkbox-label:hover {
+            background: #f3f4f6;
+        }
+
+        input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .consent-box {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .consent-label {
+            display: flex;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: #4b5563;
+        }
+
+        .consent-label input {
+            margin-top: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .consent-label a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .consent-label a:hover {
+            text-decoration: underline;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+        }
+
+        .submit-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .submit-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .error-text {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .success-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-icon,
+        .warning-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .success-card h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .next-steps {
+            background: #eff6ff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+            text-align: left;
+        }
+
+        .next-steps h3 {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+        }
+
+        .next-steps ol {
+            margin-left: 1.5rem;
+        }
+
+        .next-steps li {
+            margin-bottom: 0.5rem;
+        }
+
+        .next-steps a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .next-steps a:hover {
+            text-decoration: underline;
+        }
+
+        .helper-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 1.5rem;
+            }
+
+            .districts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <div class="logo-circle">CT</div>
+                <span>Community Transports</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="application.html">Apply Now</a></li>
+                <li><a href="admin.html">Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-card">
+            <div id="formContainer">
+                <h1>Driver Application</h1>
+                <p class="intro-text">
+                    Please complete all fields below. All information will be kept confidential and used 
+                    only for the purpose of evaluating your application.
+                </p>
+
+                <form id="applicationForm">
+                    <!-- Personal Information -->
+                    <div class="form-section">
+                        <h2 class="section-title">Personal Information</h2>
+                        
+                        <div class="form-group">
+                            <label for="firstName">Legal First Name *</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lastName">Legal Last Name *</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                    </div>
+
+                    <!-- Eligibility Requirements -->
+                    <div class="form-section">
+                        <h2 class="section-title">Eligibility Requirements</h2>
+
+                        <div class="form-group">
+                            <label>Are you 21 years old or older? *</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="age21Plus" value="yes" required>
+                                    <span>Yes</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="age21Plus" value="no" required>
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Do you have a valid driver's license? *</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="validLicense" value="yes" required>
+                                    <span>Yes</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="validLicense" value="no" required>
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Is your vehicle a 4-door car, van, or SUV less than 15 years old? *</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="vehicleType" value="yes" required>
+                                    <span>Yes</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="vehicleType" value="no" required>
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Is your vehicle registered in Texas? *</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="texasRegistration" value="yes" required>
+                                    <span>Yes</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="texasRegistration" value="no" required>
+                                    <span>No</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- School Districts -->
+                    <div class="form-section">
+                        <h2 class="section-title">School Districts You Can Service *</h2>
+                        <p class="helper-text">Select all districts where you can provide transportation services</p>
+                        
+                        <div class="districts-container">
+                            <div class="districts-grid" id="districtsGrid">
+                                <!-- Districts will be populated by JavaScript -->
+                            </div>
+                        </div>
+                        <p id="districtError" class="error-text" style="display: none;">Please select at least one district</p>
+                    </div>
+
+                    <!-- Consent -->
+                    <div class="consent-box">
+                        <label class="consent-label">
+                            <input type="checkbox" id="consent" required>
+                            <span>
+                                I consent to Community Transports collecting and processing my personal information, 
+                                and I agree to undergo a drug test and background check as part of the application process. 
+                                I have read and agree to the <a href="terms.html">Terms of Service</a> and 
+                                <a href="privacy.html">Privacy Policy</a>. *
+                            </span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">Submit Application</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const districts = [
+            'Aldine ISD', 'Alief ISD', 'Alvin ISD', 'Barbers Hill ISD', 'Channelview ISD',
+            'Clear Creek ISD', 'Conroe ISD', 'Crosby ISD', 'Cypress-Fairbanks ISD',
+            'Dayton ISD', 'Deer Park ISD', 'Dickinson ISD', 'Fort Bend ISD',
+            'Friendswood ISD', 'Galena Park ISD', 'Goose Creek CISD', 'Huffman ISD',
+            'Humble ISD', 'Katy ISD', 'Klein ISD', 'Lamar Consolidated ISD',
+            'New Caney ISD', 'Pasadena ISD', 'Pearland ISD', 'Sheldon ISD',
+            'Spring ISD', 'Spring Branch ISD', 'Tomball ISD'
+        ];
+
+        // Populate districts
+        const districtsGrid = document.getElementById('districtsGrid');
+        districts.forEach(district => {
+            const label = document.createElement('label');
+            label.className = 'checkbox-label';
+            label.innerHTML = `
+                <input type="checkbox" name="districts" value="${district}">
+                <span>${district}</span>
+            `;
+            districtsGrid.appendChild(label);
+        });
+
+        // Form submission
+        document.getElementById('applicationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Check if at least one district is selected
+            const selectedDistricts = document.querySelectorAll('input[name="districts"]:checked');
+            if (selectedDistricts.length === 0) {
+                document.getElementById('districtError').style.display = 'block';
+                return;
+            } else {
+                document.getElementById('districtError').style.display = 'none';
+            }
+
+            // Get form data
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => {
+                if (key === 'districts') {
+                    if (!data.districts) data.districts = [];
+                    data.districts.push(value);
+                } else {
+                    data[key] = value;
+                }
+            });
+
+            // Check eligibility
+            const isEligible = data.age21Plus === 'yes' && 
+                             data.validLicense === 'yes' && 
+                             data.vehicleType === 'yes' && 
+                             data.texasRegistration === 'yes';
+
+            // Store data (in real app, send to server)
+            localStorage.setItem('lastApplication', JSON.stringify(data));
+
+            // Show success/rejection message
+            showSubmissionResult(data, isEligible);
+        });
+
+        function showSubmissionResult(data, isEligible) {
+            const formContainer = document.getElementById('formContainer');
+            
+            if (isEligible) {
+                formContainer.innerHTML = `
+                    <div class="success-card">
+                        <div class="success-icon" style="color: #10b981;">✓</div>
+                        <h2>Application Submitted Successfully!</h2>
+                        <p style="margin-bottom: 1.5rem;">
+                            Thank you for applying, ${data.firstName}! We've received your application 
+                            and our team will review it shortly.
+                        </p>
+                        <div class="next-steps">
+                            <h3>Next Steps:</h3>
+                            <ol>
+                                <li>Complete your drug test at <a href="https://clearviewtesting.com" target="_blank">Clearview Testing</a> ($25)</li>
+                                <li>Complete your background check at <a href="https://identogo.com" target="_blank">Identogo</a> ($37)</li>
+                                <li>Complete English validation at <a href="https://contractorcompliance.com" target="_blank">Contractor Compliance</a></li>
+                                <li>Our team will contact you within 2-3 business days</li>
+                            </ol>
+                        </div>
+                        <button onclick="window.location.href='index.html'" class="submit-btn" style="margin-top: 1.5rem;">
+                            Return to Home
+                        </button>
+                    </div>
+                `;
+            } else {
+                formContainer.innerHTML = `
+                    <div class="success-card">
+                        <div class="warning-icon" style="color: #f59e0b;">⚠</div>
+                        <h2>Application Received</h2>
+                        <p style="margin-bottom: 1.5rem;">
+                            Thank you for your interest, ${data.firstName}. Unfortunately, based on your 
+                            responses, you don't currently meet all of our driver requirements.
+                        </p>
+                        <p style="color: #6b7280;">
+                            Please feel free to reapply once you meet all the requirements. We appreciate 
+                            your interest in Community Transports!
+                        </p>
+                        <button onclick="window.location.href='index.html'" class="submit-btn" style="margin-top: 1.5rem;">
+                            Return to Home
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
