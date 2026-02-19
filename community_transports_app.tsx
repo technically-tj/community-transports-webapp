@@ -287,7 +287,8 @@ function LoginPage({ setCurrentPage, setCurrentUser, setIsAdmin }) {
     e.preventDefault();
     setError('');
 
-    if (formData.email === 'admin@communitytransports.com' && formData.password === 'admin123') {
+    if (formData.email === 'tamiyahcommunitytransportsllc@gmail.com
+' && formData.password === 'admin123') {
       const adminUser = { email: formData.email, role: 'admin' };
       await storage.set('current_user', adminUser);
       setCurrentUser(adminUser);
@@ -1158,10 +1159,10 @@ function PrivacyPolicy({ setCurrentPage }) {
           <p>We work with third-party verification services (Clearview Testing, Identogo, Contractor Compliance) to complete required checks. Your information will be shared with these services as necessary.</p>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">5. Your Rights</h2>
-          <p>You have the right to access, correct, or delete your personal information. Contact us at privacy@communitytransports.com for requests.</p>
+          <p>You have the right to access, correct, or delete your personal information. Contact us at tamiyahcommunitytransportsllc@gmail.com for requests.</p>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">6. Contact Us</h2>
-          <p>For questions about this Privacy Policy, contact us at privacy@communitytransports.com</p>
+          <p>For questions about this Privacy Policy, contact us at tamiyahcommunitytransportsllc@gmail.com</p>
         </div>
       </div>
     </div>
@@ -1200,7 +1201,7 @@ function TermsOfService({ setCurrentPage }) {
           <p>We may update these terms at any time. Continued use of our services constitutes acceptance of updated terms.</p>
           
           <h2 className="text-xl font-semibold mt-6 mb-3">7. Contact Information</h2>
-          <p>For questions about these Terms, contact us at legal@communitytransports.com</p>
+          <p>For questions about these Terms, contact us at tamiyahcommunitytransportsllc@gmail.com</p>
         </div>
       </div>
     </div>
