@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Community Transports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen py-8 px-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900">Admin Dashboard</h2>
+                    <p id="totalCount" class="text-gray-600 mt-1">Total Applications: 0</p>
+                </div>
+                <button onclick="logout()" class="text-gray-600 hover:text-gray-900">Logout</button>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <p class="text-blue-600 text-sm font-medium">Total</p>
+                    <p id="statTotal" class="text-2xl font-bold text-blue-900">0</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <p class="text-green-600 text-sm font-medium">Eligible</p>
+                    <p id="statEligible" class="text-2xl font-bold text-green-900">0</p>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-lg">
+                    <p class="text-amber-600 text-sm font-medium">Not Eligible</p>
+                    <p id="statNotEligible" class="text-2xl font-bold text-amber-900">0</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <p class="text-purple-600 text-sm font-medium">Today</p>
+                    <p id="statToday" class="text-2xl font-bold text-purple-900">0</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-4 mb-6">
+                <div class="flex-1 min-w-[200px]">
+                    <input type="text" id="searchInput" placeholder="Search by name or email..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <option value="all">All Status</option>
+                    <option value="Eligible">Eligible</option>
+                    <option value="Not Eligible">Not Eligible</option>
+                </select>
+
+                <select id="districtFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                    <option value="all">All Districts</option>
+                </select>
+
+                <button onclick="exportToCSV()" class="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export CSV
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Submitted</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Verifications</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationsTable" class="divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+
+            <div id="noResults" class="hidden text-center py-12 text-gray-500">
+                No applications found matching your filters.
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Details Modal -->
+    <div id="detailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-8">
+            <div class="flex justify-between items-start mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">Application Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const DISTRICTS = [
+  "Aldine ISD", "Alief ISD", "Alvin ISD", "Angleton ISD", "Austin ISD", "Barbers Hill ISD",
+  "Bastrop ISD", "Boling ISD", "Brazosport ISD", "Channelview ISD",
+  "Clear Creek ISD", "Conroe ISD", "Crosby ISD", "Cypress-Fairbanks ISD", "Dayton ISD",
+  "Deer Park ISD", "Dickinson ISD", "Fort Bend ISD", "Friendswood ISD", "Frisco ISD", "Galena Park ISD",
+  "Galveston ISD", "Goose Creek CISD", "Harmony Katy", "Harmony Science", "Harmony Tech",
+  "Hitchcock ISD", "Houston ISD", "Huffman ISD", "Humble ISD", "Katy ISD", "KIPP Schools", "Klein ISD",
+  "Lamar Consolidated ISD", "La Porte ISD", "Magnolia ISD", "Montgomery ISD",
+  "New Caney ISD", "Pasadena ISD", "Pearland ISD", "Round Rock ISD", "Sealy ISD",
+  "Sheldon ISD", "Spring ISD", "Spring Branch ISD", "Texas City ISD", "Tomball ISD", "Waller ISD", "Willis ISD"
+];
+
+
+        let allApplications = [];
+        let currentApplication = null;
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+
+        function checkAuth() {
+            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            if (user.role !== 'admin') {
+                // Show a message instead of redirecting immediately
+                document.body.innerHTML = `
+                    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+                        <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Admin Access Required</h2>
+                            <p class="text-gray-600 mb-6">You need administrator privileges to access this page.</p>
+                            <div class="text-sm text-gray-500 mb-6">
+                                <p>Admin credentials:</p>
+                                <p class="font-mono">tamiyahcommunitytransportsllc@gmail.com</p>
+                                <p class="font-mono">admin123</p>
+                            </div>
+                            <a href="index.html" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                                Go to Login
+                            </a>
+                        </div>
+                    </div>
+                `;
+                return false;
+            }
+            return true;
+        }
+
+        function loadApplications() {
+            allApplications = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('application:')) {
+                    const app = JSON.parse(localStorage.getItem(key));
+                    allApplications.push(app);
+                }
+            }
+            updateStats();
+            loadDistrictFilter();
+            applyFilters();
+        }
+
+        function updateStats() {
+            const total = allApplications.length;
+            const eligible = allApplications.filter(a => a.status === 'Eligible').length;
+            const notEligible = allApplications.filter(a => a.status === 'Not Eligible').length;
+            const today = allApplications.filter(a => {
+                const appDate = new Date(a.submittedAt).toDateString();
+                const nowDate = new Date().toDateString();
+                return appDate === nowDate;
+            }).length;
+
+            document.getElementById('totalCount').textContent = 'Total Applications: ' + total;
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statEligible').textContent = eligible;
+            document.getElementById('statNotEligible').textContent = notEligible;
+            document.getElementById('statToday').textContent = today;
+        }
+
+        function loadDistrictFilter() {
+            const select = document.getElementById('districtFilter');
+            select.innerHTML = '<option value="all">All Districts</option>';
+            DISTRICTS.forEach(d => {
+                const option = document.createElement('option');
+                option.value = d;
+                option.textContent = d;
+                select.appendChild(option);
+            });
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const district = document.getElementById('districtFilter').value;
+
+            let filtered = allApplications;
+
+            if (status !== 'all') {
+                filtered = filtered.filter(a => a.status === status);
+            }
+
+            if (district !== 'all') {
+                filtered = filtered.filter(a => a.districts.includes(district));
+            }
+
+            if (search) {
+                filtered = filtered.filter(a => 
+                    a.firstName.toLowerCase().includes(search) ||
+                    a.lastName.toLowerCase().includes(search) ||
+                    a.email.toLowerCase().includes(search)
+                );
+            }
+
+            displayApplications(filtered);
+        }
+
+        function displayApplications(apps) {
+            const tbody = document.getElementById('applicationsTable');
+            const noResults = document.getElementById('noResults');
+
+            if (apps.length === 0) {
+                tbody.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            }
+
+            noResults.classList.add('hidden');
+            tbody.innerHTML = apps.map(app => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm">${app.firstName} ${app.lastName}</td>
+                    <td class="px-4 py-3 text-sm">${app.email}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold ${app.status === 'Eligible' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
+                            ${app.status}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm">${new Date(app.submittedAt).toLocaleDateString()}</td>
+                    <td class="px-4 py-3">
+                        ${app.status === 'Eligible' ? `
+                            <div class="flex gap-2">
+                                <button onclick="toggleVerification('${app.email}', 'drugTest')" class="px-2 py-1 rounded text-xs ${app.verifications.drugTest ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">
+                                    Drug
+                                </button>
+                                <button onclick="toggleVerification('${app.email}', 'backgroundCheck')" class="px-2 py-1 rounded text-xs ${app.verifications.backgroundCheck ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">
+                                    BG
+                                </button>
+                                <button onclick="toggleVerification('${app.email}', 'englishValidation')" class="px-2 py-1 rounded text-xs ${app.verifications.englishValidation ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">
+                                    Eng
+                                </button>
+                            </div>
+                        ` : ''}
+                    </td>
+                    <td class="px-4 py-3">
+                        <button onclick="showDetails('${app.email}')" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                            View Details
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleVerification(email, field) {
+            const app = JSON.parse(localStorage.getItem('application:' + email));
+            app.verifications[field] = !app.verifications[field];
+            localStorage.setItem('application:' + email, JSON.stringify(app));
+            loadApplications();
+        }
+
+        function showDetails(email) {
+            const app = JSON.parse(localStorage.getItem('application:' + email));
+            currentApplication = app;
+
+            const content = `
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="font-semibold text-gray-700 mb-2">Personal Information</h4>
+                        <div class="bg-gray-50 p-4 rounded-lg space-y-1">
+                            <p><span class="font-medium">Name:</span> ${app.firstName} ${app.lastName}</p>
+                            <p><span class="font-medium">Email:</span> ${app.email}</p>
+                            <p><span class="font-medium">Submitted:</span> ${new Date(app.submittedAt).toLocaleString()}</p>
+                            <p><span class="font-medium">Status:</span> ${app.status}</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold text-gray-700 mb-2">Eligibility Responses</h4>
+                        <div class="bg-gray-50 p-4 rounded-lg space-y-1">
+                            <p>Age 21+: ${app.over21 === 'yes' ? '✓ Yes' : '✗ No'}</p>
+                            <p>Valid License: ${app.validLicense === 'yes' ? '✓ Yes' : '✗ No'}</p>
+                            <p>Valid Vehicle: ${app.validVehicle === 'yes' ? '✓ Yes' : '✗ No'}</p>
+                            <p>TX Registered: ${app.texasRegistered === 'yes' ? '✓ Yes' : '✗ No'}</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold text-gray-700 mb-2">Districts (${app.districts.length})</h4>
+                        <div class="flex flex-wrap gap-2">
+                            ${app.districts.map(d => `<span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">${d}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    ${app.status === 'Eligible' ? `
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-2">Verification Status</h4>
+                            <div class="bg-gray-50 p-4 rounded-lg space-y-2">
+                                <p>Drug Test: ${app.verifications.drugTest ? '✓ Complete' : '○ Pending'}</p>
+                                <p>Background Check: ${app.verifications.backgroundCheck ? '✓ Complete' : '○ Pending'}</p>
+                                <p>English Validation: ${app.verifications.englishValidation ? '✓ Complete' : '○ Pending'}</p>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div>
+                        <h4 class="font-semibold text-gray-700 mb-2">Admin Notes</h4>
+                        <textarea id="adminNotes" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" rows="4" placeholder="Add notes about this application...">${app.adminNotes || ''}</textarea>
+                        <button onclick="saveNotes()" class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                            Save Notes
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('detailsModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('detailsModal').classList.add('hidden');
+            currentApplication = null;
+        }
+
+        function saveNotes() {
+            if (currentApplication) {
+                const notes = document.getElementById('adminNotes').value;
+                currentApplication.adminNotes = notes;
+                localStorage.setItem('application:' + currentApplication.email, JSON.stringify(currentApplication));
+                alert('Notes saved successfully!');
+                closeModal();
+                loadApplications();
+            }
+        }
+
+        function exportToCSV() {
+            const headers = ['Name', 'Email', 'Status', 'Submitted', 'Age 21+', 'Valid License', 'Valid Vehicle', 'TX Registered', 'Districts'];
+            const rows = allApplications.map(app => [
+                app.firstName + ' ' + app.lastName,
+                app.email,
+                app.status,
+                new Date(app.submittedAt).toLocaleDateString(),
+                app.over21,
+                app.validLicense,
+                app.validVehicle,
+                app.texasRegistered,
+                app.districts.join('; ')
+            ]);
+
+            const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'applications_' + new Date().toISOString().split('T')[0] + '.csv';
+            link.click();
+        }
+
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('districtFilter').addEventListener('change', applyFilters);
+
+        if (checkAuth()) {
+            loadApplications();
+        }
+    </script>
+</body>
+</html>

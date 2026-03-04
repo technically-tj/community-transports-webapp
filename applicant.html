@@ -86,6 +86,18 @@
         </div>
     </div>
 
+    <!-- Thank You Modal -->
+    <div id="thankYouModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white p-10 rounded-2xl shadow-2xl max-w-md w-full text-center">
+            <div class="text-6xl mb-4">🎉</div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-3">Thank You for Applying!</h2>
+            <p class="text-gray-600 text-lg mb-6">A representative will contact you soon with next steps.</p>
+            <button onclick="closeThankYou()" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition text-lg">
+                View My Application
+            </button>
+        </div>
+    </div>
+
     <div id="dashboardView" class="hidden min-h-screen py-8 px-4">
         <div class="max-w-4xl mx-auto">
             <div class="bg-white rounded-xl shadow-lg p-8">
@@ -279,8 +291,11 @@
     };
 
     localStorage.setItem('application:' + user.email, JSON.stringify(application));
-    showDashboard(application);
 
+    // Show thank-you popup immediately
+    document.getElementById('thankYouModal').classList.remove('hidden');
+
+    // Send notification in background
     try {
       const res = await fetch("/api/applications", {
         method: "POST",
@@ -289,14 +304,19 @@
       });
       const result = await res.json();
       if (!result.ok) {
-        console.error(result);
-        alert("Application saved, but email notification failed.");
+        console.error("Notification error:", result);
       }
     } catch (err) {
-      console.error(err);
-      alert("Application saved, but email notification failed.");
+      console.error("Notification error:", err);
     }
   });
+
+  function closeThankYou() {
+    document.getElementById('thankYouModal').classList.add('hidden');
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const application = JSON.parse(localStorage.getItem('application:' + user.email) || 'null');
+    if (application) showDashboard(application);
+  }
 
   loadDistricts();
   loadApplication();

@@ -5,79 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Community Transports</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen py-8 px-4">
-    <div class="max-w-7xl mx-auto">
-        <div class="bg-white rounded-xl shadow-lg p-8">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-3xl font-bold text-gray-900">Admin Dashboard</h2>
-                    <p id="totalCount" class="text-gray-600 mt-1">Total Applications: 0</p>
-                </div>
-                <button onclick="logout()" class="text-gray-600 hover:text-gray-900">Logout</button>
+    <div class="max-w-7xl mx-auto space-y-6">
+
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-lg p-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p class="text-gray-500 text-sm mt-1">Community Transports LLC &middot; Last updated: <span id="lastUpdated"></span></p>
             </div>
+            <button onclick="logout()" class="text-gray-500 hover:text-gray-800 font-medium">Logout</button>
+        </div>
 
-            <div class="grid md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <p class="text-blue-600 text-sm font-medium">Total</p>
-                    <p id="statTotal" class="text-2xl font-bold text-blue-900">0</p>
-                </div>
-                <div class="bg-green-50 p-4 rounded-lg">
-                    <p class="text-green-600 text-sm font-medium">Eligible</p>
-                    <p id="statEligible" class="text-2xl font-bold text-green-900">0</p>
-                </div>
-                <div class="bg-amber-50 p-4 rounded-lg">
-                    <p class="text-amber-600 text-sm font-medium">Not Eligible</p>
-                    <p id="statNotEligible" class="text-2xl font-bold text-amber-900">0</p>
-                </div>
-                <div class="bg-purple-50 p-4 rounded-lg">
-                    <p class="text-purple-600 text-sm font-medium">Today</p>
-                    <p id="statToday" class="text-2xl font-bold text-purple-900">0</p>
-                </div>
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl shadow p-5">
+                <p class="text-sm font-medium text-blue-600">Total Applications</p>
+                <p id="statTotal" class="text-4xl font-bold text-blue-900 mt-1">0</p>
             </div>
+            <div class="bg-white rounded-xl shadow p-5">
+                <p class="text-sm font-medium text-green-600">Eligible</p>
+                <p id="statEligible" class="text-4xl font-bold text-green-900 mt-1">0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow p-5">
+                <p class="text-sm font-medium text-amber-600">Not Eligible</p>
+                <p id="statNotEligible" class="text-4xl font-bold text-amber-900 mt-1">0</p>
+            </div>
+            <div class="bg-white rounded-xl shadow p-5 border-2 border-purple-200">
+                <p class="text-sm font-medium text-purple-600">Submitted Today</p>
+                <p id="statToday" class="text-4xl font-bold text-purple-900 mt-1">0</p>
+                <p class="text-xs text-gray-400 mt-1">Auto-refreshes at 12am · 8am · 12pm</p>
+            </div>
+        </div>
 
-            <div class="flex flex-wrap gap-4 mb-6">
-                <div class="flex-1 min-w-[200px]">
-                    <input type="text" id="searchInput" placeholder="Search by name or email..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+        <!-- Analytics Charts -->
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Applications Over Time</h2>
+                <div class="flex gap-2 mb-4">
+                    <button onclick="setChartRange('day')" id="btn-day" class="px-3 py-1 text-sm rounded-full bg-indigo-600 text-white font-medium">Today</button>
+                    <button onclick="setChartRange('week')" id="btn-week" class="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700 font-medium">This Week</button>
+                    <button onclick="setChartRange('month')" id="btn-month" class="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700 font-medium">This Month</button>
                 </div>
+                <canvas id="timelineChart" height="180"></canvas>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Eligibility Breakdown</h2>
+                <canvas id="eligibilityChart" height="180"></canvas>
+            </div>
+        </div>
 
-                <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                    <option value="all">All Status</option>
-                    <option value="Eligible">Eligible</option>
-                    <option value="Not Eligible">Not Eligible</option>
-                </select>
-
-                <select id="districtFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                    <option value="all">All Districts</option>
-                </select>
-
-                <button onclick="exportToCSV()" class="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    Export CSV
-                </button>
+        <!-- Applications Table -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex flex-wrap gap-3 mb-5 items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-800">All Applications</h2>
+                <div class="flex flex-wrap gap-3">
+                    <input type="text" id="searchInput" placeholder="Search name or email..." class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 w-56">
+                    <select id="statusFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">All Status</option>
+                        <option value="Eligible">Eligible</option>
+                        <option value="Not Eligible">Not Eligible</option>
+                    </select>
+                    <select id="districtFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">All Districts</option>
+                    </select>
+                    <select id="dateRangeFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                    <button onclick="exportToCSV()" class="flex items-center px-4 py-2 bg-gray-700 text-white rounded-lg text-sm hover:bg-gray-800 transition">
+                        &#11015; CSV
+                    </button>
+                    <button onclick="exportToExcel()" class="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition">
+                        &#11015; Excel
+                    </button>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
                         <tr>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Submitted</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Verifications</th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+                            <th class="px-4 py-3 text-left font-semibold">Name</th>
+                            <th class="px-4 py-3 text-left font-semibold">Email</th>
+                            <th class="px-4 py-3 text-left font-semibold">Status</th>
+                            <th class="px-4 py-3 text-left font-semibold">Submitted</th>
+                            <th class="px-4 py-3 text-left font-semibold">Verifications</th>
+                            <th class="px-4 py-3 text-left font-semibold">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="applicationsTable" class="divide-y divide-gray-200"></tbody>
+                    <tbody id="applicationsTable" class="divide-y divide-gray-100"></tbody>
                 </table>
             </div>
-
-            <div id="noResults" class="hidden text-center py-12 text-gray-500">
-                No applications found matching your filters.
-            </div>
+            <div id="noResults" class="hidden text-center py-12 text-gray-400">No applications found matching your filters.</div>
         </div>
     </div>
 
@@ -86,33 +111,30 @@
         <div class="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-8">
             <div class="flex justify-between items-start mb-6">
                 <h3 class="text-2xl font-bold text-gray-900">Application Details</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-3xl leading-none">&times;</button>
             </div>
-
             <div id="modalContent"></div>
         </div>
     </div>
 
     <script>
         const DISTRICTS = [
-  "Aldine ISD", "Alief ISD", "Alvin ISD", "Angleton ISD", "Austin ISD", "Barbers Hill ISD",
-  "Bastrop ISD", "Boling ISD", "Brazosport ISD", "Channelview ISD",
-  "Clear Creek ISD", "Conroe ISD", "Crosby ISD", "Cypress-Fairbanks ISD", "Dayton ISD",
-  "Deer Park ISD", "Dickinson ISD", "Fort Bend ISD", "Friendswood ISD", "Frisco ISD", "Galena Park ISD",
-  "Galveston ISD", "Goose Creek CISD", "Harmony Katy", "Harmony Science", "Harmony Tech",
-  "Hitchcock ISD", "Houston ISD", "Huffman ISD", "Humble ISD", "Katy ISD", "KIPP Schools", "Klein ISD",
-  "Lamar Consolidated ISD", "La Porte ISD", "Magnolia ISD", "Montgomery ISD",
-  "New Caney ISD", "Pasadena ISD", "Pearland ISD", "Round Rock ISD", "Sealy ISD",
-  "Sheldon ISD", "Spring ISD", "Spring Branch ISD", "Texas City ISD", "Tomball ISD", "Waller ISD", "Willis ISD"
-];
-
+            "Aldine ISD","Alief ISD","Alvin ISD","Angleton ISD","Austin ISD","Barbers Hill ISD",
+            "Bastrop ISD","Boling ISD","Brazosport ISD","Channelview ISD","Clear Creek ISD",
+            "Conroe ISD","Crosby ISD","Cypress-Fairbanks ISD","Dayton ISD","Deer Park ISD",
+            "Dickinson ISD","Fort Bend ISD","Friendswood ISD","Frisco ISD","Galena Park ISD",
+            "Galveston ISD","Goose Creek CISD","Harmony Katy","Harmony Science","Harmony Tech",
+            "Hitchcock ISD","Houston ISD","Huffman ISD","Humble ISD","Katy ISD","KIPP Schools",
+            "Klein ISD","Lamar Consolidated ISD","La Porte ISD","Magnolia ISD","Montgomery ISD",
+            "New Caney ISD","Pasadena ISD","Pearland ISD","Round Rock ISD","Sealy ISD",
+            "Sheldon ISD","Spring ISD","Spring Branch ISD","Texas City ISD","Tomball ISD","Waller ISD","Willis ISD"
+        ];
 
         let allApplications = [];
         let currentApplication = null;
+        let timelineChart = null;
+        let eligibilityChart = null;
+        let currentChartRange = 'day';
 
         function logout() {
             localStorage.removeItem('currentUser');
@@ -122,23 +144,14 @@
         function checkAuth() {
             const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
             if (user.role !== 'admin') {
-                // Show a message instead of redirecting immediately
                 document.body.innerHTML = `
                     <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
                         <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
                             <h2 class="text-2xl font-bold text-gray-900 mb-4">Admin Access Required</h2>
                             <p class="text-gray-600 mb-6">You need administrator privileges to access this page.</p>
-                            <div class="text-sm text-gray-500 mb-6">
-                                <p>Admin credentials:</p>
-                                <p class="font-mono">tamiyahcommunitytransportsllc@gmail.com</p>
-                                <p class="font-mono">admin123</p>
-                            </div>
-                            <a href="index.html" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
-                                Go to Login
-                            </a>
+                            <a href="index.html" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">Go to Login</a>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 return false;
             }
             return true;
@@ -148,13 +161,18 @@
             allApplications = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key.startsWith('application:')) {
-                    const app = JSON.parse(localStorage.getItem(key));
-                    allApplications.push(app);
+                if (key && key.startsWith('application:')) {
+                    try {
+                        const app = JSON.parse(localStorage.getItem(key));
+                        if (app) allApplications.push(app);
+                    } catch(e) {}
                 }
             }
+            allApplications.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
             updateStats();
             loadDistrictFilter();
+            buildCharts();
             applyFilters();
         }
 
@@ -162,96 +180,174 @@
             const total = allApplications.length;
             const eligible = allApplications.filter(a => a.status === 'Eligible').length;
             const notEligible = allApplications.filter(a => a.status === 'Not Eligible').length;
-            const today = allApplications.filter(a => {
-                const appDate = new Date(a.submittedAt).toDateString();
-                const nowDate = new Date().toDateString();
-                return appDate === nowDate;
-            }).length;
-
-            document.getElementById('totalCount').textContent = 'Total Applications: ' + total;
+            const todayStr = new Date().toDateString();
+            const today = allApplications.filter(a => new Date(a.submittedAt).toDateString() === todayStr).length;
             document.getElementById('statTotal').textContent = total;
             document.getElementById('statEligible').textContent = eligible;
             document.getElementById('statNotEligible').textContent = notEligible;
             document.getElementById('statToday').textContent = today;
         }
 
+        function setChartRange(range) {
+            currentChartRange = range;
+            ['day','week','month'].forEach(r => {
+                document.getElementById('btn-' + r).className = r === range
+                    ? 'px-3 py-1 text-sm rounded-full bg-indigo-600 text-white font-medium'
+                    : 'px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700 font-medium';
+            });
+            buildTimelineChart();
+        }
+
+        function buildCharts() {
+            buildTimelineChart();
+            buildEligibilityChart();
+        }
+
+        function buildTimelineChart() {
+            const now = new Date();
+            let labels = [], data = [];
+
+            if (currentChartRange === 'day') {
+                for (let h = 0; h < 24; h++) {
+                    labels.push(h === 0 ? '12am' : h < 12 ? h+'am' : h === 12 ? '12pm' : (h-12)+'pm');
+                    data.push(allApplications.filter(a => {
+                        const d = new Date(a.submittedAt);
+                        return d.toDateString() === now.toDateString() && d.getHours() === h;
+                    }).length);
+                }
+            } else if (currentChartRange === 'week') {
+                const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+                const weekStart = new Date(now);
+                weekStart.setDate(now.getDate() - now.getDay());
+                weekStart.setHours(0,0,0,0);
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(weekStart);
+                    d.setDate(weekStart.getDate() + i);
+                    labels.push(days[d.getDay()]);
+                    data.push(allApplications.filter(a => new Date(a.submittedAt).toDateString() === d.toDateString()).length);
+                }
+            } else {
+                const daysInMonth = now.getDate();
+                for (let i = 1; i <= daysInMonth; i++) {
+                    labels.push(String(i));
+                    data.push(allApplications.filter(a => {
+                        const d = new Date(a.submittedAt);
+                        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === i;
+                    }).length);
+                }
+            }
+
+            if (timelineChart) timelineChart.destroy();
+            timelineChart = new Chart(document.getElementById('timelineChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{ label: 'Applications', data, backgroundColor: 'rgba(99,102,241,0.75)', borderRadius: 4 }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        function buildEligibilityChart() {
+            const eligible = allApplications.filter(a => a.status === 'Eligible').length;
+            const notEligible = allApplications.filter(a => a.status === 'Not Eligible').length;
+            if (eligibilityChart) eligibilityChart.destroy();
+            eligibilityChart = new Chart(document.getElementById('eligibilityChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Eligible','Not Eligible'],
+                    datasets: [{ data: [eligible, notEligible], backgroundColor: ['#10b981','#f59e0b'], borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    cutout: '65%'
+                }
+            });
+        }
+
         function loadDistrictFilter() {
             const select = document.getElementById('districtFilter');
             select.innerHTML = '<option value="all">All Districts</option>';
             DISTRICTS.forEach(d => {
-                const option = document.createElement('option');
-                option.value = d;
-                option.textContent = d;
-                select.appendChild(option);
+                const o = document.createElement('option');
+                o.value = d; o.textContent = d;
+                select.appendChild(o);
             });
+        }
+
+        function getDateRangeBounds(range) {
+            const now = new Date();
+            if (range === 'today') {
+                const start = new Date(now); start.setHours(0,0,0,0);
+                return { start, end: now };
+            }
+            if (range === 'week') {
+                const start = new Date(now); start.setDate(now.getDate() - now.getDay()); start.setHours(0,0,0,0);
+                return { start, end: now };
+            }
+            if (range === 'month') {
+                return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: now };
+            }
+            return null;
         }
 
         function applyFilters() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const status = document.getElementById('statusFilter').value;
             const district = document.getElementById('districtFilter').value;
+            const dateRange = document.getElementById('dateRangeFilter').value;
 
-            let filtered = allApplications;
-
-            if (status !== 'all') {
-                filtered = filtered.filter(a => a.status === status);
+            let filtered = [...allApplications];
+            if (status !== 'all') filtered = filtered.filter(a => a.status === status);
+            if (district !== 'all') filtered = filtered.filter(a => (a.districts||[]).includes(district));
+            if (search) filtered = filtered.filter(a =>
+                (a.firstName + ' ' + a.lastName).toLowerCase().includes(search) ||
+                a.email.toLowerCase().includes(search)
+            );
+            if (dateRange !== 'all') {
+                const bounds = getDateRangeBounds(dateRange);
+                if (bounds) filtered = filtered.filter(a => {
+                    const d = new Date(a.submittedAt);
+                    return d >= bounds.start && d <= bounds.end;
+                });
             }
-
-            if (district !== 'all') {
-                filtered = filtered.filter(a => a.districts.includes(district));
-            }
-
-            if (search) {
-                filtered = filtered.filter(a => 
-                    a.firstName.toLowerCase().includes(search) ||
-                    a.lastName.toLowerCase().includes(search) ||
-                    a.email.toLowerCase().includes(search)
-                );
-            }
-
             displayApplications(filtered);
         }
 
         function displayApplications(apps) {
             const tbody = document.getElementById('applicationsTable');
             const noResults = document.getElementById('noResults');
-
             if (apps.length === 0) {
                 tbody.innerHTML = '';
                 noResults.classList.remove('hidden');
                 return;
             }
-
             noResults.classList.add('hidden');
             tbody.innerHTML = apps.map(app => `
                 <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-sm">${app.firstName} ${app.lastName}</td>
-                    <td class="px-4 py-3 text-sm">${app.email}</td>
+                    <td class="px-4 py-3">${app.firstName} ${app.lastName}</td>
+                    <td class="px-4 py-3 text-gray-500">${app.email}</td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-1 rounded-full text-xs font-semibold ${app.status === 'Eligible' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">
                             ${app.status}
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-sm">${new Date(app.submittedAt).toLocaleDateString()}</td>
+                    <td class="px-4 py-3 text-gray-500">${new Date(app.submittedAt).toLocaleDateString()}</td>
                     <td class="px-4 py-3">
                         ${app.status === 'Eligible' ? `
-                            <div class="flex gap-2">
-                                <button onclick="toggleVerification('${app.email}', 'drugTest')" class="px-2 py-1 rounded text-xs ${app.verifications.drugTest ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">
-                                    Drug
-                                </button>
-                                <button onclick="toggleVerification('${app.email}', 'backgroundCheck')" class="px-2 py-1 rounded text-xs ${app.verifications.backgroundCheck ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">
-                                    BG
-                                </button>
-                                <button onclick="toggleVerification('${app.email}', 'englishValidation')" class="px-2 py-1 rounded text-xs ${app.verifications.englishValidation ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">
-                                    Eng
-                                </button>
-                            </div>
-                        ` : ''}
+                        <div class="flex gap-1">
+                            <button onclick="toggleVerification('${app.email}','drugTest')" class="px-2 py-1 rounded text-xs ${(app.verifications||{}).drugTest ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">Drug</button>
+                            <button onclick="toggleVerification('${app.email}','backgroundCheck')" class="px-2 py-1 rounded text-xs ${(app.verifications||{}).backgroundCheck ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">BG</button>
+                            <button onclick="toggleVerification('${app.email}','englishValidation')" class="px-2 py-1 rounded text-xs ${(app.verifications||{}).englishValidation ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">Eng</button>
+                        </div>` : '&mdash;'}
                     </td>
                     <td class="px-4 py-3">
-                        <button onclick="showDetails('${app.email}')" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
-                            View Details
-                        </button>
+                        <button onclick="showDetails('${app.email}')" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">View</button>
                     </td>
                 </tr>
             `).join('');
@@ -259,6 +355,7 @@
 
         function toggleVerification(email, field) {
             const app = JSON.parse(localStorage.getItem('application:' + email));
+            if (!app.verifications) app.verifications = {};
             app.verifications[field] = !app.verifications[field];
             localStorage.setItem('application:' + email, JSON.stringify(app));
             loadApplications();
@@ -267,58 +364,42 @@
         function showDetails(email) {
             const app = JSON.parse(localStorage.getItem('application:' + email));
             currentApplication = app;
-
-            const content = `
-                <div class="space-y-6">
-                    <div>
+            const v = app.verifications || {};
+            document.getElementById('modalContent').innerHTML = `
+                <div class="space-y-5">
+                    <div class="bg-gray-50 p-4 rounded-lg">
                         <h4 class="font-semibold text-gray-700 mb-2">Personal Information</h4>
-                        <div class="bg-gray-50 p-4 rounded-lg space-y-1">
-                            <p><span class="font-medium">Name:</span> ${app.firstName} ${app.lastName}</p>
-                            <p><span class="font-medium">Email:</span> ${app.email}</p>
-                            <p><span class="font-medium">Submitted:</span> ${new Date(app.submittedAt).toLocaleString()}</p>
-                            <p><span class="font-medium">Status:</span> ${app.status}</p>
-                        </div>
+                        <p><span class="font-medium">Name:</span> ${app.firstName} ${app.lastName}</p>
+                        <p><span class="font-medium">Email:</span> ${app.email}</p>
+                        <p><span class="font-medium">Submitted:</span> ${new Date(app.submittedAt).toLocaleString()}</p>
+                        <p><span class="font-medium">Status:</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold ml-1 ${app.status === 'Eligible' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}">${app.status}</span>
+                        </p>
                     </div>
-
-                    <div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
                         <h4 class="font-semibold text-gray-700 mb-2">Eligibility Responses</h4>
-                        <div class="bg-gray-50 p-4 rounded-lg space-y-1">
-                            <p>Age 21+: ${app.over21 === 'yes' ? '✓ Yes' : '✗ No'}</p>
-                            <p>Valid License: ${app.validLicense === 'yes' ? '✓ Yes' : '✗ No'}</p>
-                            <p>Valid Vehicle: ${app.validVehicle === 'yes' ? '✓ Yes' : '✗ No'}</p>
-                            <p>TX Registered: ${app.texasRegistered === 'yes' ? '✓ Yes' : '✗ No'}</p>
-                        </div>
+                        <p>Age 21+: ${app.over21 === 'yes' ? '&#9989;' : '&#10060;'}</p>
+                        <p>Valid License: ${app.validLicense === 'yes' ? '&#9989;' : '&#10060;'}</p>
+                        <p>Valid Vehicle: ${app.validVehicle === 'yes' ? '&#9989;' : '&#10060;'}</p>
+                        <p>TX Registered: ${app.texasRegistered === 'yes' ? '&#9989;' : '&#10060;'}</p>
                     </div>
-
-                    <div>
-                        <h4 class="font-semibold text-gray-700 mb-2">Districts (${app.districts.length})</h4>
-                        <div class="flex flex-wrap gap-2">
-                            ${app.districts.map(d => `<span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">${d}</span>`).join('')}
-                        </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-2">Districts (${(app.districts||[]).length})</h4>
+                        <div class="flex flex-wrap gap-2">${(app.districts||[]).map(d => `<span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">${d}</span>`).join('')}</div>
                     </div>
-
                     ${app.status === 'Eligible' ? `
-                        <div>
-                            <h4 class="font-semibold text-gray-700 mb-2">Verification Status</h4>
-                            <div class="bg-gray-50 p-4 rounded-lg space-y-2">
-                                <p>Drug Test: ${app.verifications.drugTest ? '✓ Complete' : '○ Pending'}</p>
-                                <p>Background Check: ${app.verifications.backgroundCheck ? '✓ Complete' : '○ Pending'}</p>
-                                <p>English Validation: ${app.verifications.englishValidation ? '✓ Complete' : '○ Pending'}</p>
-                            </div>
-                        </div>
-                    ` : ''}
-
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-2">Verifications</h4>
+                        <p>Drug Test: ${v.drugTest ? '&#9989; Complete' : '&#9202; Pending'}</p>
+                        <p>Background Check: ${v.backgroundCheck ? '&#9989; Complete' : '&#9202; Pending'}</p>
+                        <p>English Validation: ${v.englishValidation ? '&#9989; Complete' : '&#9202; Pending'}</p>
+                    </div>` : ''}
                     <div>
                         <h4 class="font-semibold text-gray-700 mb-2">Admin Notes</h4>
-                        <textarea id="adminNotes" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" rows="4" placeholder="Add notes about this application...">${app.adminNotes || ''}</textarea>
-                        <button onclick="saveNotes()" class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                            Save Notes
-                        </button>
+                        <textarea id="adminNotes" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" rows="4" placeholder="Add notes about this applicant...">${app.adminNotes || ''}</textarea>
+                        <button onclick="saveNotes()" class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">Save Notes</button>
                     </div>
-                </div>
-            `;
-
-            document.getElementById('modalContent').innerHTML = content;
+                </div>`;
             document.getElementById('detailsModal').classList.remove('hidden');
         }
 
@@ -329,44 +410,94 @@
 
         function saveNotes() {
             if (currentApplication) {
-                const notes = document.getElementById('adminNotes').value;
-                currentApplication.adminNotes = notes;
+                currentApplication.adminNotes = document.getElementById('adminNotes').value;
                 localStorage.setItem('application:' + currentApplication.email, JSON.stringify(currentApplication));
-                alert('Notes saved successfully!');
                 closeModal();
                 loadApplications();
             }
         }
 
-        function exportToCSV() {
-            const headers = ['Name', 'Email', 'Status', 'Submitted', 'Age 21+', 'Valid License', 'Valid Vehicle', 'TX Registered', 'Districts'];
-            const rows = allApplications.map(app => [
-                app.firstName + ' ' + app.lastName,
-                app.email,
-                app.status,
-                new Date(app.submittedAt).toLocaleDateString(),
-                app.over21,
-                app.validLicense,
-                app.validVehicle,
-                app.texasRegistered,
-                app.districts.join('; ')
-            ]);
+        function getFilteredApps() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const district = document.getElementById('districtFilter').value;
+            const dateRange = document.getElementById('dateRangeFilter').value;
+            let filtered = [...allApplications];
+            if (status !== 'all') filtered = filtered.filter(a => a.status === status);
+            if (district !== 'all') filtered = filtered.filter(a => (a.districts||[]).includes(district));
+            if (search) filtered = filtered.filter(a =>
+                (a.firstName + ' ' + a.lastName).toLowerCase().includes(search) ||
+                a.email.toLowerCase().includes(search)
+            );
+            if (dateRange !== 'all') {
+                const bounds = getDateRangeBounds(dateRange);
+                if (bounds) filtered = filtered.filter(a => {
+                    const d = new Date(a.submittedAt); return d >= bounds.start && d <= bounds.end;
+                });
+            }
+            return filtered;
+        }
 
-            const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv' });
+        function buildExportRows(apps) {
+            const headers = ['First Name','Last Name','Email','Status','Submitted','Age 21+','Valid License','Valid Vehicle','TX Registered','Districts','Drug Test','Background Check','English Validation','Admin Notes'];
+            const rows = apps.map(a => [
+                a.firstName, a.lastName, a.email, a.status,
+                new Date(a.submittedAt).toLocaleDateString(),
+                a.over21 === 'yes' ? 'Yes' : 'No',
+                a.validLicense === 'yes' ? 'Yes' : 'No',
+                a.validVehicle === 'yes' ? 'Yes' : 'No',
+                a.texasRegistered === 'yes' ? 'Yes' : 'No',
+                (a.districts||[]).join('; '),
+                (a.verifications||{}).drugTest ? 'Complete' : 'Pending',
+                (a.verifications||{}).backgroundCheck ? 'Complete' : 'Pending',
+                (a.verifications||{}).englishValidation ? 'Complete' : 'Pending',
+                a.adminNotes || ''
+            ]);
+            return { headers, rows };
+        }
+
+        function exportToCSV() {
+            const { headers, rows } = buildExportRows(getFilteredApps());
+            const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'applications_' + new Date().toISOString().split('T')[0] + '.csv';
-            link.click();
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'applications_' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+        }
+
+        function exportToExcel() {
+            const { headers, rows } = buildExportRows(getFilteredApps());
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+            ws['!cols'] = headers.map((h, i) => ({ wch: i === 9 ? 40 : Math.max(h.length + 4, 14) }));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Applications');
+            XLSX.writeFile(wb, 'applications_' + new Date().toISOString().split('T')[0] + '.xlsx');
+        }
+
+        // Scheduled refresh at 12am, 8am, 12pm
+        function scheduleRefresh() {
+            const now = new Date();
+            let nextMs = Infinity;
+            [0, 8, 12].forEach(h => {
+                const t = new Date(now);
+                t.setHours(h, 0, 0, 0);
+                if (t <= now) t.setDate(t.getDate() + 1);
+                const diff = t - now;
+                if (diff < nextMs) nextMs = diff;
+            });
+            setTimeout(() => { loadApplications(); scheduleRefresh(); }, nextMs);
         }
 
         document.getElementById('searchInput').addEventListener('input', applyFilters);
         document.getElementById('statusFilter').addEventListener('change', applyFilters);
         document.getElementById('districtFilter').addEventListener('change', applyFilters);
+        document.getElementById('dateRangeFilter').addEventListener('change', applyFilters);
 
         if (checkAuth()) {
             loadApplications();
+            scheduleRefresh();
         }
     </script>
 </body>
