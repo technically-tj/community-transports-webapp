@@ -16,7 +16,7 @@
 import { Resend } from 'resend';
 
 const ADMIN_EMAIL = process.env.NOTIFY_TO_EMAIL || 'info@community-transports.com';
-const ADMIN_PHONE = process.env.TWILIO_TO_NUMBER || '+13464090831';
+const ADMIN_PHONES = (process.env.TWILIO_TO_NUMBER || "+13464090831").split(",").map(n => n.trim()).filter(Boolean);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -98,35 +98,36 @@ export default async function handler(req, res) {
     errors.push('email: ' + err.message);
   }
 
-  // ── 2. Send SMS via Twilio ──────────────────────────────
+  // ── 2. Send SMS via Twilio (supports multiple recipients) ─
   try {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const fromNumber = process.env.TWILIO_FROM_NUMBER;
-
-    const body = `New CT Application!\nName: ${fullName}\nStatus: ${status}\nEmail: ${email}\nSubmitted: ${submittedTime} CT`;
-
     const credentials = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
-    const twilioRes = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${credentials}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          From: fromNumber,
-          To: ADMIN_PHONE,
-          Body: body,
-        }),
-      }
-    );
+    const smsBody = `New CT Application!\nName: ${fullName}\nStatus: ${status}\nEmail: ${email}\nSubmitted: ${submittedTime} CT`;
 
-    if (!twilioRes.ok) {
-      const errData = await twilioRes.json();
-      throw new Error(errData.message || 'Twilio error');
-    }
+    // Send to all admin phone numbers
+    await Promise.all(ADMIN_PHONES.map(async (toNumber) => {
+      const twilioRes = await fetch(
+        `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Basic ${credentials}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            From: fromNumber,
+            To: toNumber,
+            Body: smsBody,
+          }),
+        }
+      );
+      if (!twilioRes.ok) {
+        const errData = await twilioRes.json();
+        throw new Error(`SMS to ${toNumber} failed: ` + (errData.message || 'Twilio error'));
+      }
+    }));
   } catch (err) {
     console.error('SMS error:', err);
     errors.push('sms: ' + err.message);
