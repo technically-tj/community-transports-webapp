@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community Transports - Driver Application</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     <nav class="bg-white shadow-sm">
@@ -88,31 +89,28 @@
         <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
             <h2 class="text-3xl font-bold text-gray-900 mb-6">Sign In</h2>
             
-            <form id="loginForm" class="space-y-4">
-                <div id="loginError" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p class="text-red-800"></p>
-                </div>
+            <div id="loginError" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p class="text-red-800"></p>
+            </div>
 
+            <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                    <input type="email" id="loginEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <input type="email" id="loginEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                 </div>
-
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                    <input type="password" id="loginPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <input type="password" id="loginPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                 </div>
-
-                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
                     Sign In
                 </button>
-            </form>
+            </div>
 
             <p class="mt-4 text-center text-gray-600">
                 Don't have an account? 
                 <button onclick="showRegister()" class="text-indigo-600 hover:text-indigo-800 font-medium">Apply now</button>
             </p>
-            
             <button onclick="closeModals()" class="mt-4 text-gray-500 hover:text-gray-700">Close</button>
         </div>
     </div>
@@ -122,36 +120,32 @@
         <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
             <h2 class="text-3xl font-bold text-gray-900 mb-6">Create Account</h2>
             
-            <form id="registerForm" class="space-y-4">
-                <div id="registerError" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p class="text-red-800"></p>
-                </div>
+            <div id="registerError" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p class="text-red-800"></p>
+            </div>
 
+            <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                    <input type="email" id="registerEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <input type="email" id="registerEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                 </div>
-
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                    <input type="password" id="registerPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <input type="password" id="registerPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                 </div>
-
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                    <input type="password" id="registerConfirmPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                    <input type="password" id="registerConfirmPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                 </div>
-
-                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
+                <button onclick="handleRegister()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
                     Create Account
                 </button>
-            </form>
+            </div>
 
             <p class="mt-4 text-center text-gray-600">
                 Already have an account? 
                 <button onclick="showLogin()" class="text-indigo-600 hover:text-indigo-800 font-medium">Sign in</button>
             </p>
-            
             <button onclick="closeModals()" class="mt-4 text-gray-500 hover:text-gray-700">Close</button>
         </div>
     </div>
@@ -167,6 +161,19 @@
     </footer>
 
     <script>
+        // ─── Supabase Init ───────────────────────────────────────────────
+        const SUPABASE_URL = 'https://tdtgpocjinqamhwvbndv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkdGdwb2NqaW5xYW1od3ZibmR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3MTM1NzAsImV4cCI6MjA3NTI4OTU3MH0.clVTKQVCmXI5nVWy4jDumraHCf539wJjb6gvKOIiqJI';
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ─── Password Reset Redirect ─────────────────────────────────────
+        // If Supabase drops a recovery token on this page, bounce to reset-password.html
+        if (window.location.hash && window.location.hash.includes('type=recovery')) {
+            window.location.replace('/reset-password.html' + window.location.hash);
+        }
+
+        // ─── Modal Controls ──────────────────────────────────────────────
         function showLogin() {
             document.getElementById('loginModal').classList.remove('hidden');
             document.getElementById('registerModal').classList.add('hidden');
@@ -182,39 +189,38 @@
             document.getElementById('registerModal').classList.add('hidden');
         }
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
+        // ─── Login (Supabase) ────────────────────────────────────────────
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.classList.add('hidden');
 
-            // Check for admin login
-            if (email === 'tamiyahcommunitytransportsllc@gmail.com' && password === 'admin123') {
-                localStorage.setItem('currentUser', JSON.stringify({ email, role: 'admin' }));
-                window.location.href = 'admin.html';
-                return;
-            }
+            const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
-            // Check regular user
-            const user = JSON.parse(localStorage.getItem('user:' + email) || 'null');
-            if (!user || user.password !== password) {
-                const errorDiv = document.getElementById('loginError');
+            if (error) {
                 errorDiv.classList.remove('hidden');
                 errorDiv.querySelector('p').textContent = 'Invalid email or password';
                 return;
             }
 
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            window.location.href = 'applicant.html';
-        });
+            // Check if admin
+            const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
+            if (profile && profile.role === 'admin') {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'applicant.html';
+            }
+        }
 
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('registerEmail').value;
+        // ─── Register (Supabase) ─────────────────────────────────────────
+        async function handleRegister() {
+            const email = document.getElementById('registerEmail').value.trim();
             const password = document.getElementById('registerPassword').value;
             const confirmPassword = document.getElementById('registerConfirmPassword').value;
-
             const errorDiv = document.getElementById('registerError');
-            
+            errorDiv.classList.add('hidden');
+
             if (password !== confirmPassword) {
                 errorDiv.classList.remove('hidden');
                 errorDiv.querySelector('p').textContent = 'Passwords do not match';
@@ -227,24 +233,23 @@
                 return;
             }
 
-            const existingUser = localStorage.getItem('user:' + email);
-            if (existingUser) {
+            const { error } = await sb.auth.signUp({ email, password });
+
+            if (error) {
                 errorDiv.classList.remove('hidden');
-                errorDiv.querySelector('p').textContent = 'An account with this email already exists';
+                errorDiv.querySelector('p').textContent = error.message;
                 return;
             }
 
-            const user = {
-                email,
-                password,
-                role: 'applicant',
-                createdAt: new Date().toISOString()
-            };
-
-            localStorage.setItem('user:' + email, JSON.stringify(user));
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            
             window.location.href = 'applicant.html';
+        }
+
+        // Allow Enter key on login
+        document.getElementById('loginPassword').addEventListener('keydown', e => {
+            if (e.key === 'Enter') handleLogin();
+        });
+        document.getElementById('registerConfirmPassword').addEventListener('keydown', e => {
+            if (e.key === 'Enter') handleRegister();
         });
     </script>
 </body>
