@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Application - Community Transports</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     <div id="applicationForm" class="min-h-screen py-12 px-4">
@@ -116,210 +117,222 @@
     </div>
 
     <script>
-        const DISTRICTS = [
-  "Aldine ISD", "Alief ISD", "Alvin ISD", "Angleton ISD", "Austin ISD", "Barbers Hill ISD",
-  "Bastrop ISD", "Boling ISD", "Brazosport ISD", "Channelview ISD",
-  "Clear Creek ISD", "Conroe ISD", "Crosby ISD", "Cypress-Fairbanks ISD", "Dayton ISD",
-  "Deer Park ISD", "Dickinson ISD", "Fort Bend ISD", "Friendswood ISD", "Frisco ISD", "Galena Park ISD",
-  "Galveston ISD", "Goose Creek CISD", "Harmony Katy", "Harmony Science", "Harmony Tech",
-  "Hitchcock ISD", "Houston ISD", "Huffman ISD", "Humble ISD", "Katy ISD", "KIPP Schools", "Klein ISD",
-  "Lamar Consolidated ISD", "LaPorte ISD", "Magnolia ISD", "Montgomery ISD",
-  "New Caney ISD", "Pasadena ISD", "Pearland ISD", "Round Rock ISD", "Sealy ISD",
-  "Sheldon ISD", "Spring ISD", "Spring Branch ISD", "Texas City ISD", "Tomball ISD", "Waller ISD", "Willis ISD"
-];
+    // ── Supabase Init ────────────────────────────────────────
+    const { createClient } = supabase;
+    const sb = createClient(
+      'https://tdtgpocjinqamhwvbndv.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkdGdwb2NqaW5xYW1od3ZibmR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3MTM1NzAsImV4cCI6MjA3NTI4OTU3MH0.clVTKQVCmXI5nVWy4jDumraHCf539wJjb6gvKOIiqJI'
+    );
 
+    const DISTRICTS = [
+      "Aldine ISD", "Alief ISD", "Alvin ISD", "Angleton ISD", "Austin ISD", "Barbers Hill ISD",
+      "Bastrop ISD", "Boling ISD", "Brazosport ISD", "Channelview ISD",
+      "Clear Creek ISD", "Conroe ISD", "Crosby ISD", "Cypress-Fairbanks ISD", "Dayton ISD",
+      "Deer Park ISD", "Dickinson ISD", "Fort Bend ISD", "Friendswood ISD", "Frisco ISD", "Galena Park ISD",
+      "Galveston ISD", "Goose Creek CISD", "Harmony Katy", "Harmony Science", "Harmony Tech",
+      "Hitchcock ISD", "Houston ISD", "Huffman ISD", "Humble ISD", "Katy ISD", "KIPP Schools", "Klein ISD",
+      "Lamar Consolidated ISD", "LaPorte ISD", "Magnolia ISD", "Montgomery ISD",
+      "New Caney ISD", "Pasadena ISD", "Pearland ISD", "Round Rock ISD", "Sealy ISD",
+      "Sheldon ISD", "Spring ISD", "Spring Branch ISD", "Texas City ISD", "Tomball ISD", "Waller ISD", "Willis ISD"
+    ];
 
-        function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = 'index.html';
-        }
-
-        function loadDistricts() {
-            const container = document.getElementById('districtsList');
-            container.innerHTML = "";
-            DISTRICTS.forEach(district => {
-                const label = document.createElement('label');
-                label.className = 'flex items-center';
-                label.innerHTML = `
-                    <input type="checkbox" name="districts" value="${district}" class="mr-2">
-                    <span class="text-sm">${district}</span>
-                `;
-                container.appendChild(label);
-            });
-        }
-
-        function loadApplication() {
-            const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            if (!user.email) {
-                // Show a message instead of redirecting immediately
-                document.body.innerHTML = `
-                    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-                        <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
-                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Please Log In</h2>
-                            <p class="text-gray-600 mb-6">You need to be logged in to access this page.</p>
-                            <a href="index.html" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">
-                                Go to Login
-                            </a>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            document.getElementById('email').value = user.email;
-
-            const application = JSON.parse(localStorage.getItem('application:' + user.email) || 'null');
-            
-            if (application) {
-                showDashboard(application);
-            } else {
-                document.getElementById('applicationForm').classList.remove('hidden');
-                document.getElementById('dashboardView').classList.add('hidden');
-            }
-        }
-
-        function showDashboard(application) {
-            document.getElementById('applicationForm').classList.add('hidden');
-            document.getElementById('dashboardView').classList.remove('hidden');
-
-            const statusBadge = document.getElementById('statusBadge');
-            if (application.status === 'Eligible') {
-                statusBadge.className = 'inline-block px-4 py-2 rounded-full font-semibold bg-green-100 text-green-800';
-            } else {
-                statusBadge.className = 'inline-block px-4 py-2 rounded-full font-semibold bg-amber-100 text-amber-800';
-            }
-            statusBadge.textContent = 'Status: ' + application.status;
-
-            let detailsHTML = `
-                <div class="grid md:grid-cols-2 gap-6 mb-8">
-                    <div>
-                        <h3 class="font-semibold text-gray-700 mb-2">Personal Information</h3>
-                        <p class="text-gray-600">Name: ${application.firstName} ${application.lastName}</p>
-                        <p class="text-gray-600">Email: ${application.email}</p>
-                        <p class="text-gray-600">Submitted: ${new Date(application.submittedAt).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-gray-700 mb-2">Eligibility</h3>
-                        <p class="text-gray-600">Age 21+: ${application.over21 === 'yes' ? '✓' : '✗'}</p>
-                        <p class="text-gray-600">Valid License: ${application.validLicense === 'yes' ? '✓' : '✗'}</p>
-                        <p class="text-gray-600">Valid Vehicle: ${application.validVehicle === 'yes' ? '✓' : '✗'}</p>
-                        <p class="text-gray-600">TX Registered: ${application.texasRegistered === 'yes' ? '✓' : '✗'}</p>
-                    </div>
-                </div>
-            `;
-
-            if (application.status === 'Eligible') {
-                detailsHTML += `
-                    <div class="mb-8">
-                        <h3 class="font-semibold text-gray-700 mb-4">Verification Status</h3>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <span>Drug Test (Clearview Testing)</span>
-                                ${application.verifications.drugTest ? 
-                                    '<span class="text-green-600">✓ Complete</span>' : 
-                                    '<a href="https://clearviewtesting.com" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">Complete ($25)</a>'}
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <span>Background Check (Identogo)</span>
-                                ${application.verifications.backgroundCheck ? 
-                                    '<span class="text-green-600">✓ Complete</span>' : 
-                                    '<a href="https://www.identogo.com" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">Complete ($37)</a>'}
-                            </div>
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <span>English Validation (Contractor Compliance)</span>
-                                ${application.verifications.englishValidation ? 
-                                    '<span class="text-green-600">✓ Complete</span>' : 
-                                    '<a href="https://contractorcompliance.io" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">Complete</a>'}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <h3 class="font-semibold text-gray-700 mb-2">Districts Selected</h3>
-                        <div class="flex flex-wrap gap-2">
-                            ${application.districts.map(d => `<span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">${d}</span>`).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-
-            if (application.adminNotes) {
-                detailsHTML += `
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h3 class="font-semibold text-gray-700 mb-2">Admin Notes</h3>
-                        <p class="text-gray-600">${application.adminNotes}</p>
-                    </div>
-                `;
-            }
-
-            document.getElementById('applicationDetails').innerHTML = detailsHTML;
-        }
-
-  document.getElementById('driverApplicationForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    if (!user.email) {
-      alert("Please log in again.");
-      window.location.href = "index.html";
-      return;
-    }
-
-    const formData = new FormData(e.target);
-    const districts = Array.from(document.querySelectorAll('input[name="districts"]:checked')).map(cb => cb.value);
-
-    const eligible =
-      formData.get('over21') === 'yes' &&
-      formData.get('validLicense') === 'yes' &&
-      formData.get('validVehicle') === 'yes' &&
-      formData.get('texasRegistered') === 'yes';
-
-    const application = {
-      firstName: formData.get('firstName') || document.getElementById('firstName').value,
-      lastName: formData.get('lastName') || document.getElementById('lastName').value,
-      email: user.email,
-      over21: formData.get('over21'),
-      validLicense: formData.get('validLicense'),
-      validVehicle: formData.get('validVehicle'),
-      texasRegistered: formData.get('texasRegistered'),
-      districts,
-      consent: document.getElementById('consent').checked,
-      status: eligible ? 'Eligible' : 'Not Eligible',
-      submittedAt: new Date().toISOString(),
-      verifications: { drugTest: false, backgroundCheck: false, englishValidation: false },
-      adminNotes: ''
-    };
-
-    localStorage.setItem('application:' + user.email, JSON.stringify(application));
-
-    // Show thank-you popup immediately
-    document.getElementById('thankYouModal').classList.remove('hidden');
-
-    // Send notification in background
-    try {
-      const res = await fetch("/api/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(application),
-      });
-      const result = await res.json();
-      if (!result.ok) {
-        console.error("Notification error:", result);
+    // ── Auth Check ───────────────────────────────────────────
+    async function loadApplication() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        document.body.innerHTML = `
+          <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+            <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+              <h2 class="text-2xl font-bold text-gray-900 mb-4">Please Log In</h2>
+              <p class="text-gray-600 mb-6">You need to be logged in to access this page.</p>
+              <a href="index.html" class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition">Go to Login</a>
+            </div>
+          </div>`;
+        return;
       }
-    } catch (err) {
-      console.error("Notification error:", err);
+      document.getElementById('email').value = session.user.email;
+      const { data: existing } = await sb.from('applications').select('*').eq('email', session.user.email).maybeSingle();
+      if (existing) {
+        showDashboard(existing);
+      } else {
+        document.getElementById('applicationForm').classList.remove('hidden');
+        document.getElementById('dashboardView').classList.add('hidden');
+      }
     }
-  });
 
-  function closeThankYou() {
-    document.getElementById('thankYouModal').classList.add('hidden');
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    const application = JSON.parse(localStorage.getItem('application:' + user.email) || 'null');
-    if (application) showDashboard(application);
-  }
+    async function logout() {
+      await sb.auth.signOut();
+      window.location.href = 'index.html';
+    }
 
-  loadDistricts();
-  loadApplication();
-</script>
+    function loadDistricts() {
+      const container = document.getElementById('districtsList');
+      container.innerHTML = "";
+      DISTRICTS.forEach(district => {
+        const label = document.createElement('label');
+        label.className = 'flex items-center';
+        label.innerHTML = `<input type="checkbox" name="districts" value="${district}" class="mr-2"><span class="text-sm">${district}</span>`;
+        container.appendChild(label);
+      });
+    }
+
+    function showDashboard(application) {
+      document.getElementById('applicationForm').classList.add('hidden');
+      document.getElementById('dashboardView').classList.remove('hidden');
+
+      const statusBadge = document.getElementById('statusBadge');
+      const status = application.eligibility_status || application.status || 'Unknown';
+      statusBadge.className = status === 'Eligible'
+        ? 'inline-block px-4 py-2 rounded-full font-semibold bg-green-100 text-green-800'
+        : 'inline-block px-4 py-2 rounded-full font-semibold bg-amber-100 text-amber-800';
+      statusBadge.textContent = 'Status: ' + status;
+
+      const districts = Array.isArray(application.districts) ? application.districts : [];
+      const v = application.verifications || {};
+      const firstName = application.first_name || application.firstName || '';
+      const lastName = application.last_name || application.lastName || '';
+
+      let detailsHTML = `
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <h3 class="font-semibold text-gray-700 mb-2">Personal Information</h3>
+            <p class="text-gray-600">Name: ${firstName} ${lastName}</p>
+            <p class="text-gray-600">Email: ${application.email}</p>
+            <p class="text-gray-600">Submitted: ${new Date(application.created_at || application.submittedAt).toLocaleDateString()}</p>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-700 mb-2">Eligibility</h3>
+            <p class="text-gray-600">Age 21+: ${(application.is_21_or_older ?? application.over21 === 'yes') ? '✓' : '✗'}</p>
+            <p class="text-gray-600">Valid License: ${(application.has_valid_license ?? application.validLicense === 'yes') ? '✓' : '✗'}</p>
+            <p class="text-gray-600">Valid Vehicle: ${(application.has_eligible_vehicle ?? application.validVehicle === 'yes') ? '✓' : '✗'}</p>
+            <p class="text-gray-600">TX Registered: ${(application.is_vehicle_registered_texas ?? application.texasRegistered === 'yes') ? '✓' : '✗'}</p>
+          </div>
+        </div>`;
+
+      if (status === 'Eligible') {
+        detailsHTML += `
+          <div class="mb-8">
+            <h3 class="font-semibold text-gray-700 mb-4">Verification Status</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span>Drug Test (Clearview Testing)</span>
+                ${v.drugTest ? '<span class="text-green-600">✓ Complete</span>' : '<a href="https://clearviewtesting.com" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">Complete ($25)</a>'}
+              </div>
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span>Background Check (Identogo)</span>
+                ${v.backgroundCheck ? '<span class="text-green-600">✓ Complete</span>' : '<a href="https://www.identogo.com" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">Complete ($37)</a>'}
+              </div>
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span>English Validation (Contractor Compliance)</span>
+                ${v.englishValidation ? '<span class="text-green-600">✓ Complete</span>' : '<a href="https://contractorcompliance.io" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium">Complete</a>'}
+              </div>
+            </div>
+          </div>
+          <div class="mb-6">
+            <h3 class="font-semibold text-gray-700 mb-2">Districts Selected</h3>
+            <div class="flex flex-wrap gap-2">
+              ${districts.map(d => `<span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">${d}</span>`).join('')}
+            </div>
+          </div>`;
+      }
+
+      if (application.notes) {
+        detailsHTML += `
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 class="font-semibold text-gray-700 mb-2">Admin Notes</h3>
+            <p class="text-gray-600">${application.notes}</p>
+          </div>`;
+      }
+
+      document.getElementById('applicationDetails').innerHTML = detailsHTML;
+    }
+
+    // ── Form Submit ──────────────────────────────────────────
+    document.getElementById('driverApplicationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        alert("Please log in again.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      const formData = new FormData(e.target);
+      const districts = Array.from(document.querySelectorAll('input[name="districts"]:checked')).map(cb => cb.value);
+
+      const eligible =
+        formData.get('over21') === 'yes' &&
+        formData.get('validLicense') === 'yes' &&
+        formData.get('validVehicle') === 'yes' &&
+        formData.get('texasRegistered') === 'yes';
+
+      const firstName = formData.get('firstName') || document.getElementById('firstName').value;
+      const lastName = formData.get('lastName') || document.getElementById('lastName').value;
+
+      const applicationData = {
+        first_name: firstName,
+        last_name: lastName,
+        email: session.user.email,
+        is_21_or_older: formData.get('over21') === 'yes',
+        has_valid_license: formData.get('validLicense') === 'yes',
+        has_eligible_vehicle: formData.get('validVehicle') === 'yes',
+        is_vehicle_registered_texas: formData.get('texasRegistered') === 'yes',
+        districts,
+        eligibility_status: eligible ? 'Eligible' : 'Not Eligible',
+        eligible,
+        verifications: { drugTest: false, backgroundCheck: false, englishValidation: false },
+        notes: ''
+      };
+
+      // Save to Supabase
+      const { data: savedApp, error } = await sb
+        .from('applications')
+        .insert([applicationData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving application:', error);
+        alert('There was an error submitting your application. Please try again.');
+        return;
+      }
+
+      // Show thank-you popup immediately
+      document.getElementById('thankYouModal').classList.remove('hidden');
+
+      // Send admin notification in background
+      try {
+        const res = await fetch("/api/applications", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            email: session.user.email,
+            status: eligible ? 'Eligible' : 'Not Eligible',
+            districts,
+            submittedAt: new Date().toISOString()
+          }),
+        });
+        const result = await res.json();
+        if (!result.ok) console.error("Notification error:", result);
+      } catch (err) {
+        console.error("Notification error:", err);
+      }
+    });
+
+    async function closeThankYou() {
+      document.getElementById('thankYouModal').classList.add('hidden');
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        const { data: app } = await sb.from('applications').select('*').eq('email', session.user.email).maybeSingle();
+        if (app) showDashboard(app);
+      }
+    }
+
+    loadDistricts();
+    loadApplication();
+    </script>
 </body>
 </html>
