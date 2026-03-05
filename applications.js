@@ -15,8 +15,8 @@
 
 import { Resend } from 'resend';
 
-const ADMIN_EMAIL = 'tamiyahcommunitytransportsllc@gmail.com';
-const ADMIN_PHONE = '+13464090831';
+const ADMIN_EMAIL = process.env.NOTIFY_TO_EMAIL || 'info@community-transports.com';
+const ADMIN_PHONE = process.env.TWILIO_TO_NUMBER || '+13464090831';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
-      from: 'Community Transports <onboarding@resend.dev>', // Replace with your verified domain
+      from: 'Community Transports <info@community-transports.com>',
       to: ADMIN_EMAIL,
       subject: `New Driver Application: ${fullName} — ${status}`,
       html: `
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
               </tr>
             </table>
             <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-              <a href="https://yourdomain.com/admin.html" style="
+              <a href="https://community-transports.com/admin.html" style="
                 display: inline-block;
                 background: #4f46e5;
                 color: white;
