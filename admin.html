@@ -166,20 +166,20 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
         let currentChartRange = 'day';
 
         // ─── Auth ────────────────────────────────────────────────────────
+        const ADMIN_EMAILS = [
+            'tabathaj2003@gmail.com',
+            'tamiyahcommunitytransportsllc@gmail.com'
+        ];
+
         async function checkAuth() {
             const { data: { session } } = await sb.auth.getSession();
-            if (session) {
-                // Check if user is admin via profiles table
-                const { data: profile } = await sb.from('profiles').select('role').eq('id', session.user.id).single();
-                if (profile && profile.role === 'admin') {
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('dashboard').classList.remove('hidden');
-                    loadApplications();
-                    scheduleRefresh();
-                } else {
-                    showLogin();
-                }
+            if (session && ADMIN_EMAILS.includes(session.user.email)) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                loadApplications();
+                scheduleRefresh();
             } else {
+                if (session) await sb.auth.signOut();
                 showLogin();
             }
         }
@@ -202,9 +202,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
                 return;
             }
 
-            // Verify admin role
-            const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
-            if (!profile || profile.role !== 'admin') {
+            // Verify admin email
+            if (!ADMIN_EMAILS.includes(data.user.email)) {
                 await sb.auth.signOut();
                 errorEl.textContent = 'Access denied. Admin privileges required.';
                 errorEl.classList.remove('hidden');
