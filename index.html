@@ -157,6 +157,9 @@
                 <a href="terms.html" class="text-gray-300 hover:text-white">Terms of Service</a>
             </div>
             <p class="text-gray-400">© 2025 Community Transports LLC. All rights reserved.</p>
+            <div class="mt-4">
+                <a href="admin.html" class="text-gray-600 hover:text-gray-400 text-xs">Admin Login</a>
+            </div>
         </div>
     </footer>
 
@@ -205,8 +208,8 @@
             }
 
             // Check if admin
-            const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
-            if (profile && profile.role === 'admin') {
+            const adminEmails = ['tabathaj2003@gmail.com', 'tamiyahcommunitytransportsllc@gmail.com'];
+            if (adminEmails.includes(data.user.email)) {
                 window.location.href = 'admin.html';
             } else {
                 window.location.href = 'applicant.html';
